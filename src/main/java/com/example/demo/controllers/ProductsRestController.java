@@ -91,7 +91,7 @@ public class ProductsRestController {
     @ApiResponse(
             responseCode = "404",
             description = "Товар с таким идентификатором уже существует " +
-                    "(для гарантированного добавления используй id=0)",
+                    "(для гарантированного добавления используй id = 0)",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))

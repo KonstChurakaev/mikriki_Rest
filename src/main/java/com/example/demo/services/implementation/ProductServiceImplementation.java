@@ -35,8 +35,8 @@ public class ProductServiceImplementation implements ProductService {
 
     @Override
     @Transactional
-    public void updateProduct(Product product) {
-        productRepository.save(product);
+    public Product updateProduct(Product product) {
+        return productRepository.save(product);
     }
 
     @Override

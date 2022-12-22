@@ -9,10 +9,10 @@ import java.util.List;
 @Mapper
 public interface ProductMapper {
 
-    ProductDTO productToProductDTO(Product product);
+    ProductDTO toProductDTO(Product product);
 
-    List<ProductDTO> productsToProductsDTO(List<Product> products);
+    List<ProductDTO> toListProductsDTO(List<Product> products);
 
-    Product productDTOToproduct(ProductDTO productDTO);
+    Product toProduct(ProductDTO productDTO);
 
 }

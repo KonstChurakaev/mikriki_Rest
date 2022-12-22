@@ -55,7 +55,7 @@ public class ProductsRestController {
         if ((products == null) || (products.isEmpty())) {
             throw new NoSuchProductException("No product found in Database");
         }
-        return new ResponseEntity<>(productMapper.productsToProductsDTO(products), HttpStatus.OK);
+        return new ResponseEntity<>(productMapper.toListProductsDTO(products), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -77,7 +77,7 @@ public class ProductsRestController {
         if (product == null) {
             throw new NoSuchProductException("There is no product with ID = " + id + " in Database");
         }
-        return new ResponseEntity<>(productMapper.productToProductDTO(product), HttpStatus.OK);
+        return new ResponseEntity<>(productMapper.toProductDTO(product), HttpStatus.OK);
     }
 
     @PostMapping("/")
@@ -99,8 +99,8 @@ public class ProductsRestController {
         if (productService.findProductById(productDTO.getId()) != null) {
             throw new NoSuchProductException("Product with this ID = " + productDTO.getId() + " already exist");
         }
-        Product product = productService.addProduct(productMapper.productDTOToproduct(productDTO));
-        return new ResponseEntity<>(productMapper.productToProductDTO(product), HttpStatus.CREATED);
+        Product product = productService.addProduct(productMapper.toProduct(productDTO));
+        return new ResponseEntity<>(productMapper.toProductDTO(product), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -118,14 +118,14 @@ public class ProductsRestController {
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
     public ResponseEntity<ProductDTO> updateProduct(
-            @RequestBody Product product,
+            @RequestBody ProductDTO productDTO,
             @Parameter(description = "Идентификатор товара") @PathVariable Long id) {
         if (productService.findProductById(id) == null) {
             throw new NoSuchProductException("There is no product with ID = " + id + " in Database");
         }
-        product.setId(id);
-        productService.updateProduct(product);
-        return new ResponseEntity<>(productMapper.productToProductDTO(product), HttpStatus.OK);
+        productDTO.setId(id);
+        Product product = productService.updateProduct(productMapper.toProduct(productDTO));
+        return new ResponseEntity<>(productMapper.toProductDTO(product), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

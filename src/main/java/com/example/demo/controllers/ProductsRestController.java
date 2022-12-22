@@ -95,11 +95,11 @@ public class ProductsRestController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
-    public ResponseEntity<ProductDTO> addProduct(@RequestBody Product product) {
-        if (productService.findProductById(product.getId()) != null) {
-            throw new NoSuchProductException("Product with this ID = " + product.getId() + " already exist");
+    public ResponseEntity<ProductDTO> addProduct(@RequestBody ProductDTO productDTO) {
+        if (productService.findProductById(productDTO.getId()) != null) {
+            throw new NoSuchProductException("Product with this ID = " + productDTO.getId() + " already exist");
         }
-        productService.addProduct(product);
+        Product product = productService.addProduct(productMapper.productDTOToproduct(productDTO));
         return new ResponseEntity<>(productMapper.productToProductDTO(product), HttpStatus.CREATED);
     }
 

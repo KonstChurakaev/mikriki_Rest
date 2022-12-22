@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-@Schema(name = "Product", description = "Сущность товара")
+@Schema(name = "ProductDTO", description = "Сущность товара")
 public class ProductDTO {
 
     @Schema(description = "Идентификатор товара")

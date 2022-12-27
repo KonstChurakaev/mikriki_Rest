@@ -11,9 +11,6 @@ import java.math.BigDecimal;
 @Schema(name = "Product", description = "Сущность товара")
 public class ProductDTO {
 
-    @Schema(description = "Идентификатор товара")
-    private long id;
-
     @Schema(description = "Тип повара")
     private String type;
 

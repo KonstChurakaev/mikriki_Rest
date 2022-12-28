@@ -2,7 +2,10 @@
 <Configuration>
     <Appenders>
         <Console name="Console">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] [%color{%p}] %logger{36} - %msg%n"/>
+            <PatternLayout
+                    pattern="%clr{%8.8r}{} msec: %clr{%d{dd-MM-yyy HH:mm:ss.SSS}}{faint}
+%clr{%5p} %clr{${sys:PID}}{magenta} %clr{---}{faint}
+ПОТОК:[%clr{%15.15t}{faint}] %clr{%-40.40c{1.}}{cyan} %clr{:}{faint} %m%n%xwEx"/>
         </Console>
     </Appenders>
     <Loggers>

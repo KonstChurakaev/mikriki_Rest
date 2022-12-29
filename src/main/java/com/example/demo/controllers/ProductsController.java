@@ -2,7 +2,9 @@ package com.example.demo.controllers;
 
 import com.example.demo.exception_handling.IncorrectProductData;
 import com.example.demo.exception_handling.NoSuchProductException;
+import com.example.demo.mappers.ProductMapper;
 import com.example.demo.models.Product;
+import com.example.demo.models.ProductDTO;
 import com.example.demo.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,14 +26,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/products")
 @Tag(name = "Product Controller", description = "Все методы для работы с товарами")
-public class ProductsRestController {
+public class ProductsController {
 
     private final ProductService productService;
+    private final ProductMapper productMapper;
 
     @GetMapping("/")
     @Operation(summary = "Возвращает список всех товаров")
@@ -39,7 +43,7 @@ public class ProductsRestController {
             responseCode = "200",
             description = "Товары успешно найдены",
             content = @Content(mediaType = "application/json",
-                    array = @ArraySchema(schema = @Schema(implementation = Product.class))
+                    array = @ArraySchema(schema = @Schema(implementation = ProductDTO.class))
             ))
     @ApiResponse(
             responseCode = "404",
@@ -47,12 +51,9 @@ public class ProductsRestController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public Optional<ResponseEntity<List<ProductDTO>>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
-        if ((products == null) || (products.isEmpty())) {
-            throw new NoSuchProductException("No product found in Database");
-        }
-        return new ResponseEntity<>(products, HttpStatus.OK);
+        return Optional.of(new ResponseEntity<>(productMapper.toListProductsDTO(products), HttpStatus.OK));
     }
 
     @GetMapping("/{id}")
@@ -61,7 +62,7 @@ public class ProductsRestController {
             responseCode = "200",
             description = "Товар с таким идентификатором найден",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = Product.class)
+                    schema = @Schema(implementation = ProductDTO.class)
             ))
     @ApiResponse(
             responseCode = "404",
@@ -69,12 +70,9 @@ public class ProductsRestController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
-    public ResponseEntity<Product> getProduct(@PathVariable @Parameter(description = "Идентификатор товара") Long id) {
+    public Optional<ResponseEntity<ProductDTO>> getProduct(@PathVariable @Parameter(description = "Идентификатор товара") Long id) {
         Product product = productService.findProductById(id);
-        if (product == null) {
-            throw new NoSuchProductException("There is no product with ID = " + id + " in Database");
-        }
-        return new ResponseEntity<>(product, HttpStatus.OK);
+        return Optional.of(new ResponseEntity<>(productMapper.toProductDTO(product), HttpStatus.OK));
     }
 
     @PostMapping("/")
@@ -83,20 +81,18 @@ public class ProductsRestController {
             responseCode = "201",
             description = "Товар успешно создан",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = Product.class)
+                    schema = @Schema(implementation = ProductDTO.class)
             ))
     @ApiResponse(
             responseCode = "404",
-            description = "Товар с таким идентификатором уже существует",
+            description = "Товар с таким идентификатором уже существует " +
+                    "(для гарантированного добавления используй id = 0)",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
-    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
-        if (productService.findProductById(product.getId()) != null) {
-            throw new NoSuchProductException("Product with this ID = " + product.getId() + " already exist");
-        }
-        productService.addProduct(product);
-        return new ResponseEntity<>(product, HttpStatus.CREATED);
+    public ResponseEntity<ProductDTO> addProduct(@RequestBody ProductDTO productDTO) {
+        Product product = productService.addProduct(productMapper.toProduct(productDTO));
+        return new ResponseEntity<>(productMapper.toProductDTO(product), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -105,7 +101,7 @@ public class ProductsRestController {
             responseCode = "200",
             description = "Товар успешно изменен",
             content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = Product.class)
+                    schema = @Schema(implementation = ProductDTO.class)
             ))
     @ApiResponse(
             responseCode = "404",
@@ -113,36 +109,28 @@ public class ProductsRestController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
-    public ResponseEntity<Product> updateProduct(
-            @RequestBody Product product,
+    public ResponseEntity<ProductDTO> updateProduct(
+            @RequestBody ProductDTO productDTO,
             @Parameter(description = "Идентификатор товара") @PathVariable Long id) {
-        if (productService.findProductById(id) == null) {
-            throw new NoSuchProductException("There is no product with ID = " + id + " in Database");
-        }
-        product.setId(id);
-        productService.updateProduct(product);
-        return new ResponseEntity<>(product, HttpStatus.OK);
+
+        Product product = productService.updateProduct(productMapper.toProduct(productDTO));
+        return new ResponseEntity<>(productMapper.toProductDTO(product), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удаляет товар с указанным идентификатором")
     @ApiResponse(
             responseCode = "204",
-            description = "Товар успешно удален",
-            content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = Product.class)
-            ))
+            description = "Товар успешно удален"
+    )
     @ApiResponse(
             responseCode = "404",
             description = "Товара с таким идентификатором не существует",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = IncorrectProductData.class)
             ))
-    public ResponseEntity<Product> deleteProduct(
+    public ResponseEntity<?> deleteProduct(
             @Parameter(description = "Идентификатор товара") @PathVariable Long id) {
-        if (productService.findProductById(id) == null) {
-            throw new NoSuchProductException("There is no product with ID = " + id + " in Database");
-        }
         productService.deleteProductById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
